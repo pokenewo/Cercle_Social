@@ -39,7 +39,7 @@ create table user_hobbies(
 
     date_ajout DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (user_id, hobby_id),
+    CONSTRAINT pk_user_hobbies PRIMARY KEY (user_id, hobby_id),
 
     CONSTRAINT fk_uh_user FOREIGN KEY(user_id) REFERENCES users(id_user) ON DELETE CASCADE,
     CONSTRAINT fk_uh_hobby FOREIGN KEY(hobby_id) REFERENCES hobbies(id_hobby) ON DELETE CASCADE
@@ -97,7 +97,7 @@ CREATE TABLE messages_lus (
     id_utilisateur INT UNSIGNED NOT NULL,
     date_lecture DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (message_id, id_utilisateur),
+    CONSTRAINT pk_messages_lus PRIMARY KEY (message_id, id_utilisateur),
 
     CONSTRAINT fk_lus_id_mess FOREIGN KEY (message_id) REFERENCES messages(id_message) ON DELETE CASCADE,
     CONSTRAINT fk_lus_id_user FOREIGN KEY (id_utilisateur) REFERENCES users(id_user) ON DELETE CASCADE
@@ -119,7 +119,7 @@ create table cercle_membres (
     id_membre INT UNSIGNED NOT NULL,
     date_ajout DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (id_cercle, id_membre),
+    CONSTRAINT pk_cercle_membres PRIMARY KEY (id_cercle, id_membre),
 
     CONSTRAINT fk_cer_mem_id_cercle FOREIGN KEY (id_cercle) REFERENCES cercles(id_cercle) ON DELETE CASCADE,
     CONSTRAINT fk_cer_mem_id_membre FOREIGN KEY (id_membre) REFERENCES users(id_user) ON DELETE CASCADE
