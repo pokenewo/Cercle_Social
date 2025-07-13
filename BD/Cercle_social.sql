@@ -33,16 +33,21 @@ create table hobbies(
     affiche_hobby VARCHAR(250) DEFAULT NULL
 );
 
-create table historique (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED DEFAULT NULL,
-    date_evenement DATETIME DEFAULT CURRENT_TIMESTAMP,
-    mementos TEXT,
-    type_evenement ENUM('inscription', 'connexion', 'modification', 'relation', 'suppression') NOT NULL,
+create table user_hobbies(
+    user_id INT UNSIGNED NOT NULL,
+    hobby_id INT UNSIGNED NOT NULL,
+
+    date_ajout DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (user_id, hobby_id),
+
+    CONSTRAINT fk_uh_user FOREIGN KEY(user_id) REFERENCES users(id_user) ON DELETE CASCADE,
+    CONSTRAINT fk_uh_hobby FOREIGN KEY(hobby_id) REFERENCES hobbies(id_hobby) ON DELETE CASCADE
 
 
-    CONSTRAINT fk_his_user_id FOREIGN KEY (user_id) REFERENCES users(id_user) ON DELETE SET NULL
 );
+
+
 
 
 create table relations(
@@ -74,20 +79,6 @@ create table relations(
 
 );
 
-create table user_hobbies(
-    user_id INT UNSIGNED NOT NULL,
-    hobby_id INT UNSIGNED NOT NULL,
-
-    date_ajout DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    PRIMARY KEY (user_id, hobby_id),
-
-    CONSTRAINT fk_uh_user FOREIGN KEY(user_id) REFERENCES users(id_user) ON DELETE CASCADE,
-    CONSTRAINT fk_uh_hobby FOREIGN KEY(hobby_id) REFERENCES hobbies(id_hobby) ON DELETE CASCADE
-
-
-);
-
 
 create table messages (
     id_message INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -100,6 +91,19 @@ create table messages (
     CONSTRAINT fk_dest_id FOREIGN KEY (destinataire_id) REFERENCES users(id_user) ON DELETE CASCADE
 );
 
+
+CREATE TABLE messages_lus (
+    message_id INT UNSIGNED NOT NULL,
+    id_utilisateur INT UNSIGNED NOT NULL,
+    date_lecture DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (message_id, id_utilisateur),
+
+    CONSTRAINT fk_lus_id_mess FOREIGN KEY (message_id) REFERENCES messages(id_message) ON DELETE CASCADE,
+    CONSTRAINT fk_lus_id_user FOREIGN KEY (id_utilisateur) REFERENCES users(id_user) ON DELETE CASCADE
+);
+
+
 create table cercles (
     id_cercle INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nom_cercle VARCHAR(100) NOT NULL,
@@ -108,6 +112,7 @@ create table cercles (
 
     CONSTRAINT fk_cercle_user FOREIGN KEY (user_createur_id) REFERENCES users(id_user) ON DELETE CASCADE
 );
+
 
 create table cercle_membres (
     id_cercle INT UNSIGNED NOT NULL,
@@ -120,56 +125,19 @@ create table cercle_membres (
     CONSTRAINT fk_cer_mem_id_membre FOREIGN KEY (id_membre) REFERENCES users(id_user) ON DELETE CASCADE
 );
 
-CREATE TABLE messages_lus (
-    id_message INT UNSIGNED NOT NULL,
-    id_utilisateur INT UNSIGNED NOT NULL,
-    date_lecture DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (id_message, id_utilisateur),
 
-    CONSTRAINT fk_lus_id_mess FOREIGN KEY (id_message) REFERENCES messages(id_message) ON DELETE CASCADE,
-    CONSTRAINT fk_lus_id_user FOREIGN KEY (id_utilisateur) REFERENCES users(id_user) ON DELETE CASCADE
+create table historique (
+    id_hist INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED DEFAULT NULL,
+    date_evenement DATETIME DEFAULT CURRENT_TIMESTAMP,
+    mementos TEXT,
+    type_evenement ENUM('inscription', 'connexion', 'modification', 'relation', 'suppression') NOT NULL,
+
+
+    CONSTRAINT fk_his_user_id FOREIGN KEY (user_id) REFERENCES users(id_user) ON DELETE SET NULL
 );
 
-CREATE TABLE historique_relations (
-    id_historique INT UNSIGNED AUTO_INCREMENT,
-    id_relation INT UNSIGNED NOT NULL,
-    action ENUM('creation', 'modification', 'suppression') NOT NULL,
-    fait_par INT UNSIGNED NOT NULL,
-    commentaire TEXT,
-    date_action DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT pk_historique_relations PRIMARY KEY (id_historique),
-    CONSTRAINT fk_hr_relation FOREIGN KEY (id_relation) REFERENCES relations(id_relation) ON DELETE CASCADE,
-    CONSTRAINT fk_hr_fait_par FOREIGN KEY (fait_par) REFERENCES users(id_user) ON DELETE SET NULL
-);
-
-CREATE TABLE historique_cercles (
-    id_historique INT UNSIGNED AUTO_INCREMENT,
-    id_cercle INT UNSIGNED NOT NULL,
-    action ENUM('creation', 'modification', 'ajout_membre', 'retrait_membre', 'suppression') NOT NULL,
-    fait_par INT UNSIGNED NOT NULL,
-    commentaire TEXT,
-    date_action DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT pk_historique_cercles PRIMARY KEY (id_historique),
-    CONSTRAINT fk_hc_cercle FOREIGN KEY (id_cercle) REFERENCES cercles(id_cercle) ON DELETE CASCADE,
-    CONSTRAINT fk_hc_fait_par FOREIGN KEY (fait_par) REFERENCES users(id_user) ON DELETE SET NULL
-);
-
-CREATE TABLE historique_messages (
-    id_historique INT UNSIGNED AUTO_INCREMENT,
-    id_message INT UNSIGNED,
-    action ENUM('modification', 'suppression') NOT NULL,
-    fait_par INT UNSIGNED NOT NULL,
-    ancien_contenu TEXT,
-    nouveau_contenu TEXT,
-    date_action DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT pk_historique_messages PRIMARY KEY (id_historique),
-    CONSTRAINT fk_hm_message FOREIGN KEY (id_message) REFERENCES messages(id_message) ON DELETE CASCADE,
-    CONSTRAINT fk_hm_user FOREIGN KEY (fait_par) REFERENCES users(id_user) ON DELETE SET NULL
-);
 
 CREATE TABLE historique_user_hobbies (
     id_historique INT UNSIGNED AUTO_INCREMENT,
@@ -185,7 +153,7 @@ CREATE TABLE historique_user_hobbies (
 
 CREATE TABLE historique_users (
     id_historique INT UNSIGNED AUTO_INCREMENT,
-    id_user INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
     champ_modifie VARCHAR(50) NOT NULL,
     ancienne_valeur TEXT,
     nouvelle_valeur TEXT,
@@ -193,8 +161,48 @@ CREATE TABLE historique_users (
     date_modification DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT pk_historique_users PRIMARY KEY (id_historique),
-    CONSTRAINT fk_hu_user FOREIGN KEY (id_user) REFERENCES users(id_user) ON DELETE CASCADE,
+    CONSTRAINT fk_hu_user FOREIGN KEY (user_id) REFERENCES users(id_user) ON DELETE CASCADE,
     CONSTRAINT fk_hu_modif_par FOREIGN KEY (modifie_par) REFERENCES users(id_user) ON DELETE SET NULL
+);
+
+CREATE TABLE historique_relations (
+    id_historique INT UNSIGNED AUTO_INCREMENT,
+    id_rel INT UNSIGNED NOT NULL,
+    action ENUM('creation', 'modification', 'suppression') NOT NULL,
+    fait_par INT UNSIGNED NOT NULL,
+    commentaire TEXT,
+    date_action DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_historique_relations PRIMARY KEY (id_historique),
+    CONSTRAINT fk_hr_relation FOREIGN KEY (id_rel) REFERENCES relations(id_relation) ON DELETE CASCADE,
+    CONSTRAINT fk_hr_fait_par FOREIGN KEY (fait_par) REFERENCES users(id_user) ON DELETE SET NULL
+);
+
+CREATE TABLE historique_cercles (
+    id_historique INT UNSIGNED AUTO_INCREMENT,
+    id_circle INT UNSIGNED NOT NULL,
+    action ENUM('creation', 'modification', 'ajout_membre', 'retrait_membre', 'suppression') NOT NULL,
+    fait_par INT UNSIGNED NOT NULL,
+    commentaire TEXT,
+    date_action DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_historique_cercles PRIMARY KEY (id_historique),
+    CONSTRAINT fk_hc_cercle FOREIGN KEY (id_circle) REFERENCES cercles(id_cercle) ON DELETE CASCADE,
+    CONSTRAINT fk_hc_fait_par FOREIGN KEY (fait_par) REFERENCES users(id_user) ON DELETE SET NULL
+);
+
+CREATE TABLE historique_messages (
+    id_historique INT UNSIGNED AUTO_INCREMENT,
+    id_mensage INT UNSIGNED,
+    action ENUM('modification', 'suppression') NOT NULL,
+    fait_par INT UNSIGNED NOT NULL,
+    ancien_contenu TEXT,
+    nouveau_contenu TEXT,
+    date_action DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_historique_messages PRIMARY KEY (id_historique),
+    CONSTRAINT fk_hm_message FOREIGN KEY (id_mensage) REFERENCES messages(id_message) ON DELETE CASCADE,
+    CONSTRAINT fk_hm_user FOREIGN KEY (fait_par) REFERENCES users(id_user) ON DELETE SET NULL
 );
 
 /*
